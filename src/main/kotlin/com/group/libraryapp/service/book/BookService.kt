@@ -39,7 +39,6 @@ class BookService(
 
     @Transactional
     fun returnBook(request: BookReturnRequest) {
-
         val user = userRepository.findByName(request.userName) ?: fail()
         user.returnBook(request.bookName)
     }
