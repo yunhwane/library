@@ -5,6 +5,9 @@ import com.group.libraryapp.domain.user.UserRepository
 import com.group.libraryapp.dto.user.request.UserCreateRequest
 import com.group.libraryapp.dto.user.request.UserUpdateRequest
 import com.group.libraryapp.dto.user.response.UserResponse
+import com.group.libraryapp.util.fail
+import com.group.libraryapp.util.findByIdOrThrow
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -22,18 +25,22 @@ class UserService(
 
     @Transactional(readOnly = true)
     fun getUsers(): List<UserResponse> {
-        return userRepository.findAll().map { UserResponse(it) }
+        return userRepository.findAll().map { UserResponse.from(it) }
     }
 
+    /**
+     * jpa findByid 는 Optional 로 반환한다.
+     * 이것을 변경할 수 없기 때문에 확장함수를 사용할 수 있다.
+     */
     @Transactional
     fun updateUser(userUpdateRequest: UserUpdateRequest) {
-        val user = userRepository.findById(userUpdateRequest.id).orElseThrow { IllegalArgumentException("해당 유저가 존재하지 않습니다.") }
+        val user = userRepository.findByIdOrThrow(userUpdateRequest.id)
         user.updateName(userUpdateRequest.name)
     }
 
     @Transactional
     fun deleteUser(name: String) {
-        val user = userRepository.findByName(name).orElseThrow { IllegalArgumentException("해당 유저가 존재하지 않습니다.") }
+        val user = userRepository.findByName(name) ?: fail()
         userRepository.delete(user)
     }
 }
